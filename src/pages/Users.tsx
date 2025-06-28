@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import toast from 'react-hot-toast'
 import {
   UsersIcon,
   PlusIcon,
@@ -13,9 +14,13 @@ import {
 import UserStats from '../components/Users/UserStats'
 import UserFilters from '../components/Users/UserFilters'
 import CreateUserModal from '../components/Users/CreateUserModal'
+import ViewUserModal from '../components/Users/ViewUserModal'
+import EditUserModal from '../components/Users/EditUserModal'
+import { ProfileService } from '../services/profileService'
+import { Profile, ProfileFilters } from '../types/profiles'
 
 interface User {
-  id: number
+  id: string
   name: string
   email: string
   role: string
@@ -25,52 +30,32 @@ interface User {
   avatar?: string
 }
 
-// Mock data fetching function
-const fetchUsers = async (filters: any) => {
+// Convert Profile to User format for UI compatibility
+const profileToUser = (profile: Profile): User => ({
+  id: profile.id,
+  name: profile.full_name || profile.username || 'Unknown',
+  email: profile.email || '',
+  role: profile.role || 'user',
+  status: profile.is_active ? 'active' : 'inactive',
+  lastLogin: profile.updated_at || profile.created_at,
+  joinedAt: profile.created_at,
+  avatar: profile.avatar_url
+})
+
+// Fetch users from Supabase
+const fetchUsers = async (filters: ProfileFilters) => {
+  const [profiles, stats] = await Promise.all([
+    ProfileService.getProfiles(filters),
+    ProfileService.getProfileStats()
+  ])
+  
   return {
-    users: [
-      {
-        id: 1,
-        name: 'Sarah Johnson',
-        email: 'sarah@glamourstudio.com',
-        role: 'Salon Owner',
-        status: 'active' as const,
-        lastLogin: '2024-01-20T10:30:00Z',
-        joinedAt: '2023-08-15T00:00:00Z',
-      },
-      {
-        id: 2,
-        name: 'Michael Chen',
-        email: 'michael@elitecuts.com',
-        role: 'Manager',
-        status: 'active' as const,
-        lastLogin: '2024-01-19T16:45:00Z',
-        joinedAt: '2023-09-22T00:00:00Z',
-      },
-      {
-        id: 3,
-        name: 'Emma Wilson',
-        email: 'emma@beautyhaven.com',
-        role: 'Stylist',
-        status: 'inactive' as const,
-        lastLogin: '2024-01-15T08:20:00Z',
-        joinedAt: '2023-11-05T00:00:00Z',
-      },
-      {
-        id: 4,
-        name: 'David Rodriguez',
-        email: 'david@trendycuts.com',
-        role: 'Admin',
-        status: 'active' as const,
-        lastLogin: '2024-01-20T14:15:00Z',
-        joinedAt: '2023-07-10T00:00:00Z',
-      },
-    ],
+    users: profiles.map(profileToUser),
     stats: {
-      totalUsers: 1247,
-      activeUsers: 1089,
-      newThisMonth: 45,
-      growthRate: 12.5,
+      totalUsers: stats.totalProfiles,
+      activeUsers: stats.activeProfiles,
+      newThisMonth: stats.newThisMonth,
+      growthRate: stats.growthRate,
     },
   }
 }
@@ -83,12 +68,90 @@ export default function Users() {
     dateRange: 'all',
   })
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+
+  const queryClient = useQueryClient()
 
   const { data, isLoading } = useQuery({
     queryKey: ['users', filters, searchTerm],
-    queryFn: () => fetchUsers({ ...filters, search: searchTerm }),
+    queryFn: () => fetchUsers({ role: filters.role, status: filters.status, search: searchTerm }),
   })
+
+  // Mutation for deleting a user
+  const deleteUserMutation = useMutation({
+    mutationFn: (userId: string) => ProfileService.deleteProfile(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      toast.success('User deleted successfully!')
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to delete user: ${error.message}`)
+    }
+  })
+
+  // Mutation for toggling user status
+  const toggleStatusMutation = useMutation({
+    mutationFn: (userId: string) => ProfileService.toggleProfileStatus(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      toast.success('User status updated successfully!')
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to update user status: ${error.message}`)
+    }
+  })
+
+  // Mutation for resetting password
+  const resetPasswordMutation = useMutation({
+    mutationFn: (email: string) => ProfileService.resetPassword(email),
+    onSuccess: (result) => {
+      toast.success(result.message)
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to reset password: ${error.message}`)
+    }
+  })
+
+  const handleDeleteUser = (userId: string) => {
+    if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      deleteUserMutation.mutate(userId)
+    }
+  }
+
+  const handleToggleStatus = (userId: string) => {
+    toggleStatusMutation.mutate(userId)
+  }
+
+  const handleResetPassword = (user: User) => {
+    if (!user.email) {
+      toast.error('Cannot reset password: No email address found')
+      return
+    }
+    if (confirm('Are you sure you want to send a password reset email to this user?')) {
+      resetPasswordMutation.mutate(user.email)
+    }
+  }
+
+  const handleCreateSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['users'] })
+  }
+
+  const handleViewUser = (user: User) => {
+    setSelectedUser(user)
+    setIsViewModalOpen(true)
+  }
+
+  const handleEditUser = (user: User) => {
+    setSelectedUser(user)
+    setIsEditModalOpen(true)
+  }
+
+  const handleEditSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['users'] })
+    setSelectedUser(null)
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -259,15 +322,31 @@ export default function Users() {
                     <td className="py-4">
                       <div className="flex items-center space-x-2">
                         <button
-                          onClick={() => setSelectedUser(user)}
+                          onClick={() => handleViewUser(user)}
                           className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                          title="View User"
                         >
                           <EyeIcon className="w-4 h-4" />
                         </button>
-                        <button className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                        <button 
+                          onClick={() => handleEditUser(user)}
+                          className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                          title="Edit User"
+                        >
                           <PencilIcon className="w-4 h-4" />
                         </button>
-                        <button className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors">
+                        <button 
+                          onClick={() => handleResetPassword(user)}
+                          className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-lg transition-colors"
+                          title="Reset Password"
+                        >
+                          🔑
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteUser(user.id)}
+                          className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
+                          title="Delete User"
+                        >
                           <TrashIcon className="w-4 h-4" />
                         </button>
                       </div>
@@ -280,11 +359,31 @@ export default function Users() {
         )}
       </motion.div>
 
-      {/* Create User Modal */}
+      {/* Modals */}
       <CreateUserModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={() => fetchUsers({})}
+        onSuccess={handleCreateSuccess}
+      />
+      
+      <ViewUserModal
+        isOpen={isViewModalOpen}
+        user={selectedUser}
+        onClose={() => {
+          setIsViewModalOpen(false)
+          setSelectedUser(null)
+        }}
+        onEdit={handleEditUser}
+      />
+      
+      <EditUserModal
+        isOpen={isEditModalOpen}
+        user={selectedUser}
+        onClose={() => {
+          setIsEditModalOpen(false)
+          setSelectedUser(null)
+        }}
+        onSuccess={handleEditSuccess}
       />
     </div>
   )

@@ -412,7 +412,7 @@ export function DataAuditTab({ dataChangeLogs, clientBackups, clients }: DataAud
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
                       <h4 className="font-medium text-white">
-                        {clients.find(c => c.id === backup.client_id)?.salon_name || 'Unknown Client'}
+                        {clients.find(c => c.id === backup.created_by)?.salon_name || 'Unknown Client'}
                       </h4>
                       <span className={`px-2 py-1 rounded text-xs ${getBackupStatusColor(backup.status)}`}>
                         {backup.status}
@@ -495,7 +495,7 @@ export function DataAuditTab({ dataChangeLogs, clientBackups, clients }: DataAud
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-medium text-white">
-                        {clients.find(c => c.id === backup.client_id)?.salon_name}
+                        {clients.find(c => c.id === backup.created_by)?.salon_name}
                       </h4>
                       <p className="text-gray-300 text-sm">
                         Backup tested successfully - Estimated restore time: {backup.restore_time_estimate} minutes

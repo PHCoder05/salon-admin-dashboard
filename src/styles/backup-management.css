@@ -1,0 +1,303 @@
+/* Glass Card */
+.glass-card {
+  @apply bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl;
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  @apply bg-white/10 border-white/20;
+  transform: translateY(-2px);
+}
+
+/* Glass Button */
+.glass-button {
+  @apply bg-blue-500/20 text-blue-400 rounded-lg transition-all duration-300;
+}
+
+.glass-button:hover {
+  @apply bg-blue-500/30;
+}
+
+.glass-button.hover-glow:hover {
+  box-shadow: 0 0 15px theme('colors.blue.500' / 30%);
+}
+
+/* Status Indicators */
+.status-badge {
+  @apply px-2 py-0.5 rounded-full text-sm font-medium;
+}
+
+.status-badge.completed {
+  @apply bg-green-500/20 text-green-400;
+}
+
+.status-badge.failed {
+  @apply bg-red-500/20 text-red-400;
+}
+
+.status-badge.in-progress {
+  @apply bg-blue-500/20 text-blue-400;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  @apply animate-spin text-blue-500;
+}
+
+/* Modal Backdrop */
+.modal-backdrop {
+  @apply fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50;
+}
+
+/* Modal Content */
+.modal-content {
+  @apply bg-gray-900 rounded-xl shadow-xl w-full max-w-lg p-6;
+}
+
+/* Form Elements */
+.form-input {
+  @apply w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+.form-select {
+  @apply w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+.form-checkbox {
+  @apply rounded bg-white/10 border-white/20 text-blue-500 focus:ring-blue-500;
+}
+
+/* Table Styles */
+.backup-table {
+  @apply w-full;
+}
+
+.backup-table th {
+  @apply px-4 py-2 text-left text-white/60 font-medium;
+}
+
+.backup-table td {
+  @apply px-4 py-2 text-white;
+}
+
+.backup-table tr {
+  @apply border-b border-white/10;
+}
+
+.backup-table tr:last-child {
+  @apply border-none;
+}
+
+/* Icon Button */
+.icon-button {
+  @apply p-2 rounded-lg transition-colors;
+}
+
+.icon-button.primary {
+  @apply text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20;
+}
+
+.icon-button.danger {
+  @apply text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20;
+}
+
+.icon-button.success {
+  @apply text-green-400 hover:text-green-300 bg-green-500/10 hover:bg-green-500/20;
+}
+
+.icon-button.warning {
+  @apply text-yellow-400 hover:text-yellow-300 bg-yellow-500/10 hover:bg-yellow-500/20;
+}
+
+/* Progress Bar */
+.progress-bar {
+  @apply w-full h-2 bg-white/10 rounded-full overflow-hidden;
+}
+
+.progress-bar-fill {
+  @apply h-full transition-all duration-300;
+}
+
+.progress-bar-fill.completed {
+  @apply bg-green-500;
+}
+
+.progress-bar-fill.in-progress {
+  @apply bg-blue-500;
+}
+
+.progress-bar-fill.failed {
+  @apply bg-red-500;
+}
+
+/* Tooltips */
+.tooltip {
+  @apply absolute z-50 px-2 py-1 text-xs text-white bg-gray-900 rounded shadow-lg;
+  transform: translateY(-100%);
+}
+
+/* Empty State */
+.empty-state {
+  @apply text-center py-8 text-white/40;
+}
+
+.empty-state-icon {
+  @apply w-12 h-12 mx-auto mb-4;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .glass-card {
+    @apply p-4;
+  }
+
+  .modal-content {
+    @apply mx-4;
+  }
+
+  .backup-table {
+    @apply block overflow-x-auto;
+  }
+}
+
+.backup-management {
+  padding: 24px;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+}
+
+.glass-card .ant-card-body {
+  padding: 24px;
+}
+
+.backup-modal .ant-modal-content {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+}
+
+.backup-modal .ant-modal-header {
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.backup-modal .ant-modal-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Status colors */
+.ant-tag-success {
+  background: rgba(82, 196, 26, 0.2);
+  border-color: #52c41a;
+  color: #52c41a;
+}
+
+.ant-tag-processing {
+  background: rgba(24, 144, 255, 0.2);
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+.ant-tag-error {
+  background: rgba(255, 77, 79, 0.2);
+  border-color: #ff4d4f;
+  color: #ff4d4f;
+}
+
+/* Card hover effects */
+.ant-card {
+  transition: all 0.3s ease;
+}
+
+.ant-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Table styles */
+.ant-table {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.ant-table-thead > tr > th {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.85);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ant-table-tbody > tr > td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ant-table-tbody > tr:hover > td {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Button styles */
+.ant-btn {
+  border-radius: 6px;
+}
+
+.ant-btn-primary {
+  background: #1890ff;
+  border-color: #1890ff;
+}
+
+.ant-btn-primary:hover {
+  background: #40a9ff;
+  border-color: #40a9ff;
+}
+
+/* Select styles */
+.ant-select {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+}
+
+.ant-select-selector {
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Statistics card styles */
+.ant-statistic-title {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.ant-statistic-content {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .backup-management {
+    padding: 16px;
+  }
+
+  .glass-card .ant-card-body {
+    padding: 16px;
+  }
+
+  .ant-row {
+    margin-bottom: 16px;
+  }
+} 

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -78,8 +79,17 @@ const fetchSystemData = async () => {
   }
 }
 
+type TabType = 'backup' | 'recovery' | 'issues' | 'health'
+
 export default function SystemManagement() {
-  const [activeTab, setActiveTab] = useState('overview')
+  const location = useLocation()
+  const [activeTab, setActiveTab] = useState<TabType>('health')
+
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab as TabType)
+    }
+  }, [location.state])
 
   const { data, isLoading } = useQuery({
     queryKey: ['systemManagement'],
@@ -213,7 +223,7 @@ export default function SystemManagement() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => setActiveTab(tab.id as TabType)}
                 className={`w-full text-left p-4 rounded-lg transition-all duration-200 hover:scale-105 ${
                   activeTab === tab.id
                     ? 'glass-button text-white shadow-lg'

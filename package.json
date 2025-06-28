@@ -9,7 +9,7 @@
   "keywords": [
     "salon",
     "admin",
-    "dashboard", 
+    "dashboard",
     "saas",
     "management",
     "react",
@@ -30,20 +30,31 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.0.0",
     "@headlessui/react": "^1.7.17",
     "@heroicons/react": "^2.0.18",
+    "@supabase/supabase-js": "^2.50.2",
     "@tanstack/react-query": "^4.29.0",
+    "@types/jszip": "^3.4.0",
+    "antd": "^5.26.2",
     "axios": "^1.6.0",
+    "chart.js": "^4.5.0",
     "date-fns": "^2.30.0",
     "framer-motion": "^10.16.0",
+    "jszip": "^3.10.1",
     "lucide-react": "^0.292.0",
     "react": "^18.2.0",
+    "react-chartjs-2": "^5.3.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.47.0",
+    "react-hot-toast": "^2.5.2",
     "react-player": "^2.13.0",
     "react-router-dom": "^6.17.0",
+    "recharts": "^3.0.2",
     "socket.io-client": "^4.7.2",
-    "webrtc-adapter": "^8.2.3"
+    "tailwindcss-animate": "^1.0.7",
+    "webrtc-adapter": "^8.2.3",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/node": "^20.8.0",

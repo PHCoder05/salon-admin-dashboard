@@ -21,10 +21,6 @@ import {
 } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 
-// Import types and hooks
-import { SalonClient, SaaSOverviewData } from '../types/saas'
-import { useSaaSData } from '../hooks/useSaaSData'
-
 // Import tab components
 import {
   SessionTrackingTab,
@@ -43,9 +39,7 @@ import {
 } from '../components/SaaS/tabs'
 
 export default function ClientDataManagementRefactored() {
-  const [activeTab, setActiveTab] = useState('overview')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedClient, setSelectedClient] = useState<SalonClient | null>(null)
+  const [activeTab, setActiveTab] = useState('clients')
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [showDataModal, setShowDataModal] = useState(false)
@@ -53,37 +47,38 @@ export default function ClientDataManagementRefactored() {
   const [showBackupModal, setShowBackupModal] = useState(false)
   const [showSessionModal, setShowSessionModal] = useState(false)
 
-  // Use the custom hook for data fetching
-  const { data, isLoading, error } = useSaaSData()
+  // Data fetching is now handled within the ClientManagementTab
+  // const { data, isLoading, error } = useSaaSData()
 
-  const handleClientAction = (action: string, client: SalonClient) => {
-    setSelectedClient(client)
+  // This is now handled within the ClientManagementTab
+  // const handleClientAction = (action: string, client: SalonClient) => {
+  //   setSelectedClient(client)
     
-    switch (action) {
-      case 'view':
-        // Handle view client details
-        toast.success(`Viewing details for ${client.salon_name}`)
-        break
-      case 'reset-password':
-        setShowPasswordModal(true)
-        toast.success(`Password reset initiated for ${client.salon_name}`)
-        break
-      case 'view-sessions':
-        setShowSessionModal(true)
-        break
-      case 'view-data':
-        setShowDataModal(true)
-        break
-      case 'view-analytics':
-        setShowAnalyticsModal(true)
-        break
-      case 'view-backups':
-        setShowBackupModal(true)
-        break
-      default:
-        break
-    }
-  }
+  //   switch (action) {
+  //     case 'view':
+  //       // Handle view client details
+  //       toast.success(`Viewing details for ${client.salon_name}`)
+  //       break
+  //     case 'reset-password':
+  //       setShowPasswordModal(true)
+  //       toast.success(`Password reset initiated for ${client.salon_name}`)
+  //       break
+  //     case 'view-sessions':
+  //       setShowSessionModal(true)
+  //       break
+  //     case 'view-data':
+  //       setShowDataModal(true)
+  //       break
+  //     case 'view-analytics':
+  //       setShowAnalyticsModal(true)
+  //       break
+  //     case 'view-backups':
+  //       setShowBackupModal(true)
+  //       break
+  //     default:
+  //       break
+  //   }
+  // }
 
   // Default values for type safety
   const defaultSecuritySettings = {
@@ -131,104 +126,48 @@ export default function ClientDataManagementRefactored() {
   ]
 
   const renderTabContent = () => {
-    if (error) {
-      return (
-        <div className="text-center py-12">
-          <p className="text-red-400">Error loading data: {error.message}</p>
-        </div>
-      )
-    }
-
-         switch (activeTab) {
-       case 'overview':
-         return <SaaSOverviewTab data={data} isLoading={isLoading} />
-         
-       case 'clients':
-         return (
-           <ClientManagementTab
-             clients={data?.clients || []}
-             isLoading={isLoading}
-             onClientAction={handleClientAction}
-             onCreateClient={() => setShowCreateModal(true)}
-             searchTerm={searchTerm}
-             setSearchTerm={setSearchTerm}
-           />
-         )
-         
-       case 'sessions':
-         return (
-           <SessionTrackingTab 
-             sessions={data?.sessions || []} 
-             isLoading={isLoading} 
-           />
-         )
-         
-                case 'data':
-         return <DataManagementTab clientData={data?.clientData || []} isLoading={isLoading} />
+    switch (activeTab) {
+      case 'overview':
+        return <SaaSOverviewTab />
+        
+      case 'clients':
+        return <ClientManagementTab />
+        
+      case 'sessions':
+        return <SessionTrackingTab />
+        
+      case 'data':
+        return <DataManagementTab />
         
       case 'analytics':
-        return <AdvancedAnalyticsTab 
-          clients={data?.clients || []} 
-          analytics={data?.analytics || {}}
-          isLoading={isLoading} 
-        />
+        return <AdvancedAnalyticsTab />
         
       case 'backups':
-        return <BackupManagementTab 
-          clients={data?.clients || []} 
-          backups={data?.backups || []}
-          isLoading={isLoading} 
-        />
+        return <BackupManagementTab />
         
       case 'security':
-        return <SecurityCenterTab 
-          clients={data?.clients || []} 
-          securityIncidents={data?.securityIncidents || []}
-          securitySettings={data?.securitySettings || defaultSecuritySettings}
-          isLoading={isLoading} 
-        />
+        return <SecurityCenterTab />
         
       case 'support':
-        return <SupportTicketsTab 
-          clients={data?.clients || []}
-          supportTickets={data?.supportTickets || []}
-          isLoading={isLoading} 
-        />
+        return <SupportTicketsTab />
         
       case 'billing':
-        return <BillingManagementTab 
-          clients={data?.clients || []}
-          billingRecords={data?.billingRecords || []}
-          isLoading={isLoading} 
-        />
+        return <BillingManagementTab />
         
       case 'settings':
-        return <PlatformSettingsTab 
-          platformSettings={data?.platformSettings || defaultPlatformSettings}
-          isLoading={isLoading} 
-        />
+        return <PlatformSettingsTab onSave={() => toast.success('Settings saved!')} />
         
       case 'notifications':
-        return <NotificationCenterTab 
-          notifications={data?.notifications || []}
-          isLoading={isLoading} 
-        />
+        return <NotificationCenterTab />
         
       case 'api':
-        return <APIUsageTab 
-          clients={data?.clients || []}
-          apiUsage={data?.apiUsage || []}
-          isLoading={isLoading} 
-        />
+        return <APIUsageTab />
         
       case 'automation':
-        return <AutomationTab 
-          workflows={data?.automationWorkflows || []}
-          isLoading={isLoading} 
-        />
+        return <AutomationTab />
         
-             default:
-         return <SaaSOverviewTab data={data} isLoading={isLoading} />
+      default:
+        return <div>Select a tab</div>
     }
   }
 
@@ -252,14 +191,15 @@ export default function ClientDataManagementRefactored() {
             </div>
             
             <div className="flex items-center space-x-4 mt-4 md:mt-0">
-              <div className="flex items-center space-x-2 text-green-400">
+              {/* These stats are now part of the UserStats component in the tab */}
+              {/* <div className="flex items-center space-x-2 text-green-400">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                 <span className="text-sm font-medium">{data?.systemOverview?.totalClients || 0} Active Clients</span>
               </div>
               <div className="flex items-center space-x-2 text-blue-400">
                 <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
                 <span className="text-sm font-medium">{data?.systemOverview?.activeSessions || 0} Live Sessions</span>
-              </div>
+              </div> */}
               <button className="glass-button px-4 py-2 hover-glow flex items-center space-x-2">
                 <UserPlusIcon className="w-4 h-4" />
                 <span>Add New Client</span>

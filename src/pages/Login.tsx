@@ -1,27 +1,42 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { EyeIcon, EyeSlashIcon, ShieldCheckIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
+import { useNavigate } from 'react-router-dom'
 
 export default function Login() {
   const { login } = useAuth()
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
+  // Cleanup effect for loading state
+  useEffect(() => {
+    return () => {
+      setIsLoading(false)
+    }
+  }, [])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (isLoading) return // Prevent multiple submissions
+    
     setIsLoading(true)
+    const loadingToast = toast.loading('Signing in...')
 
     try {
       await login(email, password)
       toast.success('Welcome back, Admin!')
+      navigate('/dashboard')
     } catch (error: any) {
       toast.error(error.message || 'Login failed')
+      setIsLoading(false) // Reset loading state on error
     } finally {
-      setIsLoading(false)
+      toast.dismiss(loadingToast)
+      setIsLoading(false) // Ensure loading state is always reset
     }
   }
 
@@ -70,6 +85,7 @@ export default function Login() {
                 className="glass-input w-full px-4 py-3 transition-all duration-300 focus:scale-105"
                 placeholder="admin@salon.com"
                 required
+                disabled={isLoading}
               />
             </motion.div>
 
@@ -90,11 +106,13 @@ export default function Login() {
                   className="glass-input w-full px-4 py-3 pr-12 transition-all duration-300 focus:scale-105"
                   placeholder="••••••••"
                   required
+                  disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white transition-colors"
+                  disabled={isLoading}
                 >
                   {showPassword ? (
                     <EyeSlashIcon className="w-5 h-5" />
@@ -111,16 +129,16 @@ export default function Login() {
               transition={{ delay: 0.5 }}
               type="submit"
               disabled={isLoading}
-              className="w-full glass-button py-3 px-6 font-semibold text-white hover-glow disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
+              className={`w-full glass-button py-3 px-6 font-semibold text-white hover-glow disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden ${isLoading ? 'cursor-not-allowed' : 'cursor-pointer'}`}
             >
               {isLoading ? (
-                <div className="flex items-center justify-center">
+                <div className="flex items-center justify-center space-x-2">
                   <motion.div
-                    className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full mr-2"
+                    className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                   />
-                  Signing In...
+                  <span>Signing In...</span>
                 </div>
               ) : (
                 'Sign In to Dashboard'

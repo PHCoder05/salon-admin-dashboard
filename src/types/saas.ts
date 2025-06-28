@@ -1,47 +1,11 @@
 // SaaS Admin Dashboard Types
 export interface SalonClient {
-  id: string
-  salon_name: string
-  owner_name: string
-  email: string
-  phone: string
-  address: string
-  city: string
-  state: string
-  country: string
-  subscription_plan: 'basic' | 'pro' | 'premium' | 'enterprise'
-  subscription_status: 'active' | 'inactive' | 'suspended' | 'trial' | 'expired'
-  created_at: string
-  last_login: string
-  monthly_revenue: number
-  total_revenue: number
-  support_tickets: number
-  users_count: number
-  appointments_count: number
-  status: 'active' | 'inactive' | 'suspended'
-  trial_ends_at?: string
-  // Enhanced fields
-  password_last_changed: string
-  mfa_enabled: boolean
-  api_key: string
-  database_size: string
-  backup_frequency: 'daily' | 'weekly' | 'monthly'
-  last_backup: string
-  data_retention_days: number
-  custom_domain?: string
-  branding_enabled: boolean
-  sso_enabled: boolean
-  webhook_url?: string
-  timezone: string
-  billing_address: string
-  payment_method: string
-  contract_start: string
-  contract_end: string
-  auto_renewal: boolean
-  // Security fields
-  security_score?: number
-  ip_restrictions: boolean
-  session_monitoring: boolean
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ClientSession {
@@ -100,15 +64,45 @@ export interface ClientAnalytics {
   }
 }
 
+export interface BackupOptions {
+  type: 'full' | 'incremental' | 'differential';
+  compression: boolean;
+  encryption: boolean;
+  tables?: string[];
+  clientId?: string;
+  storageType?: 'cloud' | 'local' | 'both';
+  dateRange?: [string, string];
+  description?: string;
+  priority?: 'low' | 'medium' | 'high';
+  retentionPeriod?: number;
+  selectAllTables?: boolean;
+}
+
 export interface BackupRecord {
-  id: string
-  client_id: string
-  backup_type: 'full' | 'incremental' | 'differential'
-  file_size: string
-  created_at: string
-  status: 'completed' | 'in_progress' | 'failed'
-  retention_until: string
-  download_url?: string
+  id: string;
+  created_by?: string;
+  table_name: string;
+  backup_type: 'full' | 'incremental' | 'differential';
+  status: 'in_progress' | 'completed' | 'failed';
+  restore_status?: 'in_progress' | 'completed' | 'failed';
+  backup_data: Record<string, any>;
+  file_paths: string[];
+  backup_size: number;
+  created_at: string;
+  completed_at?: string;
+  restore_started_at?: string;
+  error_message?: string;
+}
+
+export interface BackupSchedule {
+  id: string;
+  client_id?: string;
+  frequency: 'daily' | 'weekly' | 'monthly';
+  backup_options: BackupOptions;
+  next_run: string;
+  created_at: string;
+  updated_at: string;
+  active: boolean;
 }
 
 export interface SupportTicket {

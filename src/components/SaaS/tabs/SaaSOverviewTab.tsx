@@ -1,24 +1,27 @@
 import { motion } from 'framer-motion'
-import { SaaSOverviewData } from '../../../types/saas'
+import { useQuery } from '@tanstack/react-query'
+import { ClientDataService, ClientStats, ClientActivity } from '../../../services/clientDataService'
+import LoadingSpinner from '../../ui/LoadingSpinner'
+import { supabase } from '../../../lib/supabase'
 
-interface SaaSOverviewTabProps {
-  data: SaaSOverviewData | undefined
-  isLoading: boolean
-}
+export function SaaSOverviewTab() {
+  // Fetch client stats
+  const { data: stats, isLoading: isLoadingStats } = useQuery<ClientStats>({
+    queryKey: ['clientStats'],
+    queryFn: () => ClientDataService.getClientStats()
+  })
 
-export function SaaSOverviewTab({ data, isLoading }: SaaSOverviewTabProps) {
+  // Fetch recent activity
+  const { data: recentActivity, isLoading: isLoadingActivity } = useQuery<ClientActivity[]>({
+    queryKey: ['recentActivity'],
+    queryFn: () => ClientDataService.getRecentActivity()
+  })
+
+  const isLoading = isLoadingStats || isLoadingActivity
+
   if (isLoading) return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="glass-card p-6">
-            <div className="animate-pulse">
-              <div className="h-4 bg-white/10 rounded mb-2"></div>
-              <div className="h-8 bg-white/10 rounded"></div>
-            </div>
-          </div>
-        ))}
-      </div>
+    <div className="flex justify-center items-center h-64">
+      <LoadingSpinner />
     </div>
   )
   
@@ -31,7 +34,7 @@ export function SaaSOverviewTab({ data, isLoading }: SaaSOverviewTabProps) {
           className="glass-card p-6"
         >
           <h3 className="text-lg font-semibold text-white">Total Clients</h3>
-          <p className="text-2xl font-bold text-blue-400">{data?.systemOverview?.totalClients || 0}</p>
+          <p className="text-2xl font-bold text-blue-400">{stats?.totalClients || 0}</p>
           <p className="text-sm text-white/60">Active salon clients</p>
         </motion.div>
         
@@ -42,7 +45,7 @@ export function SaaSOverviewTab({ data, isLoading }: SaaSOverviewTabProps) {
           className="glass-card p-6"
         >
           <h3 className="text-lg font-semibold text-white">Monthly Revenue</h3>
-          <p className="text-2xl font-bold text-green-400">${data?.systemOverview?.monthlyRevenue?.toLocaleString() || 0}</p>
+          <p className="text-2xl font-bold text-green-400">${stats?.monthlyRevenue?.toLocaleString() || 0}</p>
           <p className="text-sm text-white/60">Total recurring revenue</p>
         </motion.div>
         
@@ -53,7 +56,7 @@ export function SaaSOverviewTab({ data, isLoading }: SaaSOverviewTabProps) {
           className="glass-card p-6"
         >
           <h3 className="text-lg font-semibold text-white">Active Sessions</h3>
-          <p className="text-2xl font-bold text-purple-400">{data?.systemOverview?.activeSessions || 0}</p>
+          <p className="text-2xl font-bold text-purple-400">{stats?.activeSessions || 0}</p>
           <p className="text-sm text-white/60">Currently online</p>
         </motion.div>
         
@@ -64,7 +67,7 @@ export function SaaSOverviewTab({ data, isLoading }: SaaSOverviewTabProps) {
           className="glass-card p-6"
         >
           <h3 className="text-lg font-semibold text-white">Support Tickets</h3>
-          <p className="text-2xl font-bold text-yellow-400">{data?.systemOverview?.openTickets || 0}</p>
+          <p className="text-2xl font-bold text-yellow-400">{stats?.openTickets || 0}</p>
           <p className="text-sm text-white/60">Open tickets</p>
         </motion.div>
       </div>
@@ -73,7 +76,7 @@ export function SaaSOverviewTab({ data, isLoading }: SaaSOverviewTabProps) {
       <div className="glass-card p-6">
         <h3 className="text-lg font-semibold text-white mb-4">Recent Client Activity</h3>
         <div className="space-y-3">
-          {data?.clients?.slice(0, 5).map((client, index) => (
+          {recentActivity?.map((client, index) => (
             <motion.div
               key={client.id}
               initial={{ opacity: 0, x: -20 }}

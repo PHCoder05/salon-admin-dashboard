@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import {
   WifiIcon,
@@ -12,30 +12,41 @@ import {
 } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 import { ClientSession } from '../../../types/saas'
+import { supabase } from '../../../lib/supabase'
+import LoadingSpinner from '../../ui/LoadingSpinner'
 
-interface SessionTrackingTabProps {
-  sessions: ClientSession[]
-  isLoading: boolean
+interface Session {
+  id: string
+  user_id: string
+  started_at: string
+  last_active: string
+  ip_address: string
+  user_agent: string
+  is_active: boolean
 }
 
-export function SessionTrackingTab({ sessions, isLoading }: SessionTrackingTabProps) {
-  const [selectedSession, setSelectedSession] = useState<ClientSession | null>(null)
-  
-  if (isLoading) return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="glass-card p-6">
-            <div className="animate-pulse">
-              <div className="h-4 bg-white/10 rounded mb-2"></div>
-              <div className="h-8 bg-white/10 rounded"></div>
-            </div>
-          </div>
-        ))}
+export function SessionTrackingTab() {
+  const { data: sessions, isLoading } = useQuery<Session[]>({
+    queryKey: ['sessions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('active_sessions')
+        .select('*')
+        .order('last_active', { ascending: false })
+
+      if (error) throw error
+      return data
+    }
+  })
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <LoadingSpinner />
       </div>
-    </div>
-  )
-  
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Enhanced Session Analytics */}
@@ -48,7 +59,7 @@ export function SessionTrackingTab({ sessions, isLoading }: SessionTrackingTabPr
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-white">Active Sessions</h3>
-              <p className="text-2xl font-bold text-green-400">{sessions.filter(s => s.is_active).length}</p>
+              <p className="text-2xl font-bold text-green-400">{sessions?.filter(s => s.is_active).length}</p>
               <p className="text-sm text-white/60">Currently online</p>
             </div>
             <div className="p-3 rounded-full bg-green-500/20">
@@ -66,7 +77,7 @@ export function SessionTrackingTab({ sessions, isLoading }: SessionTrackingTabPr
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-white">Total Sessions</h3>
-              <p className="text-2xl font-bold text-blue-400">{sessions.length}</p>
+              <p className="text-2xl font-bold text-blue-400">{sessions?.length}</p>
               <p className="text-sm text-white/60">Today</p>
             </div>
             <div className="p-3 rounded-full bg-blue-500/20">
@@ -84,7 +95,7 @@ export function SessionTrackingTab({ sessions, isLoading }: SessionTrackingTabPr
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-white">Unique Locations</h3>
-              <p className="text-2xl font-bold text-purple-400">{new Set(sessions.map(s => s.location?.city)).size}</p>
+              <p className="text-2xl font-bold text-purple-400">{new Set(sessions?.map(s => s.location?.city)).size}</p>
               <p className="text-sm text-white/60">Cities</p>
             </div>
             <div className="p-3 rounded-full bg-purple-500/20">
@@ -102,7 +113,7 @@ export function SessionTrackingTab({ sessions, isLoading }: SessionTrackingTabPr
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-white">High Activity</h3>
-              <p className="text-2xl font-bold text-yellow-400">{sessions.filter(s => s.actions_count > 100).length}</p>
+              <p className="text-2xl font-bold text-yellow-400">{sessions?.filter(s => s.actions_count > 100).length}</p>
               <p className="text-sm text-white/60">Suspicious behavior</p>
             </div>
             <div className="p-3 rounded-full bg-yellow-500/20">
@@ -132,7 +143,7 @@ export function SessionTrackingTab({ sessions, isLoading }: SessionTrackingTabPr
               </tr>
             </thead>
             <tbody className="divide-y divide-white/10">
-              {sessions.slice(0, 15).map((session, index) => (
+              {sessions?.slice(0, 15).map((session, index) => (
                 <motion.tr
                   key={session.id}
                   initial={{ opacity: 0, y: 10 }}
@@ -144,11 +155,11 @@ export function SessionTrackingTab({ sessions, isLoading }: SessionTrackingTabPr
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
                         <span className="text-white font-semibold text-xs">
-                          {session.user_name.charAt(0).toUpperCase()}
+                          {session.user_id.charAt(0).toUpperCase()}
                         </span>
                       </div>
                       <div>
-                        <p className="text-white font-medium">{session.user_name}</p>
+                        <p className="text-white font-medium">{session.user_id}</p>
                         <div className="flex items-center space-x-1 text-sm text-white/60">
                           <MapPinIcon className="w-3 h-3" />
                           <span>{session.location?.city}, {session.location?.country}</span>
@@ -202,26 +213,14 @@ export function SessionTrackingTab({ sessions, isLoading }: SessionTrackingTabPr
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => setSelectedSession(session)}
-                        className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 rounded-lg transition-colors duration-200"
-                        title="View Details"
+                        onClick={() => {
+                          toast.success(`Terminating session for ${session.user_id}`)
+                        }}
+                        className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-lg transition-colors duration-200"
+                        title="Terminate Session"
                       >
-                        <EyeIcon className="w-4 h-4" />
+                        <XCircleIcon className="w-4 h-4" />
                       </motion.button>
-                      
-                      {session.is_active && (
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => {
-                            toast.success(`Terminating session for ${session.user_name}`)
-                          }}
-                          className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-lg transition-colors duration-200"
-                          title="Terminate Session"
-                        >
-                          <XCircleIcon className="w-4 h-4" />
-                        </motion.button>
-                      )}
                     </div>
                   </td>
                 </motion.tr>
@@ -230,14 +229,6 @@ export function SessionTrackingTab({ sessions, isLoading }: SessionTrackingTabPr
           </table>
         </div>
       </div>
-
-      {/* Session Details Modal */}
-      {selectedSession && (
-        <SessionDetailsModal 
-          session={selectedSession}
-          onClose={() => setSelectedSession(null)}
-        />
-      )}
     </div>
   )
 }
@@ -271,7 +262,7 @@ function SessionDetailsModal({ session, onClose }: SessionDetailsModalProps) {
             <div className="glass-card p-4 space-y-3">
               <div className="flex justify-between">
                 <span className="text-white/60">User:</span>
-                <span className="text-white">{session.user_name}</span>
+                <span className="text-white">{session.user_id}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-white/60">Device:</span>
